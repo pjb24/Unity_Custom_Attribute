@@ -1,48 +1,63 @@
+# 🎯 Conditional & Snap Attribute System for Unity
 
-# 🎯 Conditional Inspector System for Unity
+- [🎯 Conditional \& Snap Attribute System for Unity](#-conditional--snap-attribute-system-for-unity)
+  - [📘 개요](#-개요)
+  - [🗂️ 폴더 구조](#️-폴더-구조)
+  - [⚙️ 기능 요약](#️-기능-요약)
+  - [🧩 Conditional Inspector System](#-conditional-inspector-system)
+    - [✅ 주요 기능](#-주요-기능)
+    - [💡 사용 예시](#-사용-예시)
+    - [✅ 부모 상대 경로](#-부모-상대-경로)
+    - [✅ 점 경로](#-점-경로)
+    - [✅ Enum Flags](#-enum-flags)
+  - [🧩 SnapTo Attribute System](#-snapto-attribute-system)
+    - [✅ 주요 기능](#-주요-기능-1)
+    - [💡 사용 예시](#-사용-예시-1)
+    - [입력 결과 예시](#입력-결과-예시)
+  - [✅ 지원 정보](#-지원-정보)
+
 
 ## 📘 개요
-이 시스템은 Unity Inspector에서 **조건부 필드 표시(Show/Hide)** 를 지원한다.  
-`[ShowIfAny]`, `[HideIfAll]`, `[ShowIfFlagsAny]` 등 Attribute를 이용해  
-enum, bool, int, float, string, enum flags 값에 따라 필드를 자동으로 표시하거나 숨길 수 있다.
+이 리포지토리는 Unity Inspector를 확장하기 위한 **2가지 커스텀 Attribute 시스템**을 포함한다.
+
+1. **Conditional Inspector System** — 필드를 조건에 따라 표시하거나 숨길 수 있는 시스템  
+2. **SnapTo System** — 입력값을 지정된 간격(예: 90 단위)으로 자동 스냅(snap)시키는 시스템  
+
+두 기능 모두 **프로젝트 간 독립적으로 사용 가능**하며, Editor/Runtime 구조만 지키면 바로 동작한다.
+
 
 ---
-
-## 🗂️ 폴더 구조 및 배치
+## 🗂️ 폴더 구조
 ```plaintext
 Assets/
  ├─ Scripts/
- │   ├─ ConditionalAttribute.cs ← Attribute 정의 (런타임 코드)
- │   └─ Weapon.cs               ← 테스트용 스크립트 (예시)
+ │   ├─ ConditionalAttribute.cs  ← 조건부 표시용 Attribute 정의
+ │   └─ SnapToAttribute.cs       ← 값 스냅용 Attribute 정의
  └─ Editor/
-     ├─ ConditionalDrawer.cs    ← PropertyDrawer (에디터 전용)
-     └─ CondPathUtil.cs         ← 경로 해석 유틸리티
-````
+     ├─ ConditionalDrawer.cs     ← 조건부 표시 Drawer
+     ├─ CondPathUtil.cs          ← 조건부 표시용 경로 유틸리티
+     └─ SnapToDrawer.cs          ← 값 스냅 Drawer
+```
 
-* **Scripts 폴더**
-
-  * `[ShowIfAny]`, `[HideIfAll]` 등 Attribute 클래스는 반드시 여기 위치해야 한다.
-  * Editor 폴더에 넣으면 Inspector에서 인식되지 않음.
-
-* **Editor 폴더**
-
-  * `ConditionalDrawer`, `CondPathUtil`은 반드시 Editor 폴더에 배치해야 한다.
-  * 그렇지 않으면 빌드 포함 오류가 발생한다.
 
 ---
+## ⚙️ 기능 요약
+| 기능                       | 설명                                                        | 적용 대상              | 주요 Attribute                                     |
+| ------------------------ | --------------------------------------------------------- | ------------------ | ------------------------------------------------ |
+| **조건부 표시 (Conditional)** | bool, int, float, string, enum 값에 따라 Inspector에서 필드 표시/숨김 | SerializedField 전반 | `[ShowIfAny]`, `[HideIfAll]`, `[ShowIfFlagsAny]` |
+| **값 스냅 (SnapTo)**        | Inspector 값 입력 시 지정 간격(예: 5, 90 등)에 맞게 자동 보정              | float, int 필드      | `[SnapTo(90f)]`                                  |
 
-## ⚙️ 주요 기능
-
-* Enum, Bool, Int, Float, String, Enum Flags 비교 지원
-* 점(`.`), 부모 상대(`../`), 절대(`$`) 경로 지원
-* 다중 조건(AND / OR) 결합 가능
-* `ShowIf` / `HideIf` / `ShowIfFlags` / `HideIfFlags` 시리즈 제공
-* 멀티 오브젝트 편집 및 프리팹 오버라이드 호환
 
 ---
+## 🧩 Conditional Inspector System
 
-## 💡 사용 예시
+### ✅ 주요 기능
+- Enum / Bool / Int / Float / String / Enum Flags 비교 지원
+- 점(.), 부모 상대(../), 절대($) 경로 지원
+- 다중 조건 AND / OR 결합 가능
+- ShowIf, HideIf, ShowIfFlags, HideIfFlags 시리즈 제공
 
+### 💡 사용 예시
 ```csharp
 public class Weapon : MonoBehaviour
 {
@@ -57,13 +72,8 @@ public class Weapon : MonoBehaviour
     [SerializeField] private int _rangeVar;
 }
 ```
-
-* `_type == Melee` → `_meleeVar`만 표시
-* `_type == Range` → `_rangeVar`만 표시
-
----
-
-## 🔗 확장 기능
+- _type == Melee → _meleeVar만 표시
+- _type == Range → _rangeVar만 표시
 
 ### ✅ 부모 상대 경로
 
@@ -80,7 +90,6 @@ public class Inventory : MonoBehaviour
 {
     public Item[] items;
 }
-
 ```
 
 ### ✅ 점 경로
@@ -100,7 +109,6 @@ public class Weapon : MonoBehaviour
     [ShowIfAny("config.isActive", true)]
     [SerializeField] private int bonusPower;
 }
-
 ```
 
 ### ✅ Enum Flags
@@ -113,56 +121,31 @@ public enum Tags { None=0, Fire=1<<0, Ice=1<<1 }
 public float elementalPower;
 ```
 
----
-
-## ⚠️ 주의 사항
-
-* **Attribute는 `Scripts/`**, **Drawer와 유틸리티는 `Editor/`** 폴더에 반드시 분리 배치해야 한다.
-  경로가 섞이면 `ShowIfAny`를 인식하지 못한다.
-* Drawer는 `SerializedProperty` 기반이므로 숨겨진 상태에서도 값은 유지된다.
-* 문자열 비교는 기본적으로 **대소문자 구분(`Ordinal`)** 모드로 수행된다.
-  필요 시 `OrdinalIgnoreCase`로 수정 가능.
 
 ---
+## 🧩 SnapTo Attribute System
 
-## 🧩 참고 및 확장
+### ✅ 주요 기능
+- 입력값을 지정된 단위(예: 90f, 5f 등)로 자동 정렬
+- float, int 타입 모두 지원
+- 회전, 스케일, 위치, 타일 단위 등 다양한 수치에 사용 가능
 
-* 다중 Attribute 부착 시 기본적으로 **AND 결합**
-* Enum Flags는 비트 단위로 Any / All 비교 가능
-* `[ShowIfAll]`, `[HideIfAny]`, `[ShowIfFlagsAll]` 등 조합 가능
-* 문자열, float, enum index 비교까지 완전 지원
-
----
-
-## 📄 구성 요약
-
-| 구성 요소        | 파일명                       | 폴더      | 역할                      |
-| ------------ | ------------------------- | ------- | ----------------------- |
-| Attribute 정의 | `ConditionalAttribute.cs` | Scripts | 조건부 표시 Attribute 정의     |
-| Drawer 구현    | `ConditionalDrawer.cs`    | Editor  | 조건 평가 및 Inspector 표시 제어 |
-| 경로 유틸리티      | `CondPathUtil.cs`         | Editor  | 점/상대/절대 경로 해석 처리        |
-
----
-
-## 🧰 복사 후 바로 사용하기
-
-이 시스템은 프로젝트 간 재사용을 고려해 설계되었다.
-`Assets/Scripts/` 와 `Assets/Editor/` 폴더 구조만 유지하면 즉시 동작한다.
-
-```plaintext
-Assets/
- ├─ Scripts/
- │   └─ ConditionalAttribute.cs
- └─ Editor/
-     ├─ ConditionalDrawer.cs
-     └─ CondPathUtil.cs
-```
-
-필요 시 원하는 필드에 다음과 같이 Attribute를 추가하면 된다:
-
+### 💡 사용 예시
 ```csharp
-[ShowIfAny(nameof(isActive), true)]
-[SerializeField] private int powerLevel;
+public class SnapExample : MonoBehaviour
+{
+    [SnapTo(90f)] public float rotationY;
+    [SnapTo(5f)]  public int gridSize;
+}
 ```
 
+### 입력 결과 예시
+- rotationY: 47 → 0, 136 → 90, 271 → 270
+- gridSize: 3 → 5, 12 → 10, 28 → 30
+
+
 ---
+## ✅ 지원 정보
+- 동작 대상:
+    - Conditional: 모든 Serialized 타입
+    - SnapTo: float, int
